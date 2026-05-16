@@ -287,9 +287,6 @@
     }
     @keyframes cursorBlink { 50% { opacity: 0; } }
 
-    /* desliga pseudo-elementos durante o hack */
-    .glitch.hacking::before,
-    .glitch.hacking::after { display: none; }
 
     /* ════════════════════════════════════════════════════
        SECTION HEADERS
@@ -1217,7 +1214,9 @@
 
     async function erase(text, speed) {
       for (let i = text.length; i >= 0; i--) {
-        document.getElementById('hack-text').textContent = text.slice(0, i);
+        const cur = text.slice(0, i);
+        document.getElementById('hack-text').textContent = cur;
+        el.setAttribute('data-text', cur); // glitch acompanha
         await sleep(speed + Math.random() * 30);
       }
     }
@@ -1225,12 +1224,14 @@
     async function type(text, speed, accentEnd) {
       const span = document.getElementById('hack-text');
       for (let i = 0; i <= text.length; i++) {
+        const cur = text.slice(0, i);
+        el.setAttribute('data-text', cur); // glitch acompanha
         if (accentEnd && i <= accentEnd) {
-          span.innerHTML = `<span class="accent">${text.slice(0, i)}</span>`;
+          span.innerHTML = `<span class="accent">${cur}</span>`;
         } else if (accentEnd) {
           span.innerHTML = `<span class="accent">${text.slice(0, accentEnd)}</span>${text.slice(accentEnd, i)}`;
         } else {
-          span.textContent = text.slice(0, i);
+          span.textContent = cur;
         }
         await sleep(speed + Math.random() * 40);
       }
@@ -1240,8 +1241,6 @@
       if (running) return;
       running = true;
 
-      // Para o glitch CSS para não bugar durante o hack
-      el.classList.add('hacking');
       await sleep(400);
 
       // Entra em modo hack: mostra o nome atual com cursor piscando
@@ -1266,10 +1265,9 @@
       await type(realName, 75, 6); // "Brayan" = 6 chars
       await sleep(300);
 
-      // Remove cursor, restaura HTML original e religa o glitch
+      // Restaura HTML e data-text originais
       el.innerHTML = origHTML;
       el.setAttribute('data-text', origData);
-      el.classList.remove('hacking');
 
       running = false;
 
