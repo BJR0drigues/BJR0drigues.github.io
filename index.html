@@ -236,7 +236,7 @@
       box-shadow: 0 0 20px var(--red-glow);
     }
 
-    /* ── Glitch effect no nome ───────────────────────── */
+    /* ── Glitch base ─────────────────────────────────── */
     .glitch {
       position: relative;
     }
@@ -273,6 +273,50 @@
       96%          { transform: translate(-3px, 1px); }
       97%          { transform: translate(2px, -2px); }
       98%,100%     { transform: translate(0); }
+    }
+
+    /* ── Daemon reveal ───────────────────────────────── */
+    .glitch.daemon-reveal {
+      animation: daemonFlicker 1.4s forwards;
+    }
+    .glitch.daemon-reveal::before {
+      animation: daemonSliceTop 1.4s forwards;
+      color: var(--red);
+    }
+    .glitch.daemon-reveal::after {
+      animation: daemonSliceBot 1.4s forwards;
+      color: #00bcd4;
+    }
+
+    @keyframes daemonFlicker {
+      0%            { filter: none; }
+      10%           { filter: brightness(2) saturate(0); transform: skewX(-4deg); }
+      15%           { filter: none; transform: skewX(0); }
+      25%           { filter: brightness(3) hue-rotate(120deg); transform: skewX(3deg) scaleX(1.02); }
+      30%           { filter: none; transform: none; }
+      40%,70%       { filter: none; transform: none; }
+      72%           { filter: brightness(2) saturate(0); transform: skewX(-3deg); }
+      75%           { filter: none; transform: none; }
+      90%           { filter: brightness(1.5) hue-rotate(200deg); transform: skewX(2deg); }
+      100%          { filter: none; transform: none; }
+    }
+    @keyframes daemonSliceTop {
+      0%,20%        { transform: translate(0); clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%); }
+      22%           { transform: translate(-8px, -2px); clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%); }
+      24%           { transform: translate(6px, 1px); }
+      30%,69%       { transform: translate(0); clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%); }
+      72%           { transform: translate(-10px, -3px); }
+      75%           { transform: translate(8px, 2px); }
+      80%,100%      { transform: translate(0); clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%); }
+    }
+    @keyframes daemonSliceBot {
+      0%,20%        { transform: translate(0); clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%); }
+      22%           { transform: translate(8px, 2px); clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%); }
+      24%           { transform: translate(-6px, -1px); }
+      30%,69%       { transform: translate(0); clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%); }
+      72%           { transform: translate(10px, 3px); }
+      75%           { transform: translate(-8px, -2px); }
+      80%,100%      { transform: translate(0); clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%); }
     }
 
     /* ════════════════════════════════════════════════════
@@ -1182,6 +1226,46 @@
     });
   }, { threshold: 0.2 });
   bars.forEach(b => barObs.observe(b));
+
+  /* ── Daemon reveal ───────────────────────────────── */
+  (function daemonLoop() {
+    const el       = document.querySelector('.hero-name');
+    const origText = 'Brayan J. Rodrigues';
+    const origData = 'Brayan J. Rodrigues';
+    const inner    = el.innerHTML; // guarda o HTML original com o span
+
+    function triggerDaemon() {
+      // Fase 1: glitch intenso → troca pra Deamon
+      el.classList.add('daemon-reveal');
+      el.setAttribute('data-text', 'Deamon');
+
+      setTimeout(() => {
+        el.innerHTML = '<span class="accent">Dea</span>mon';
+      }, 280);
+
+      // Fase 2: fica como Deamon por um tempo
+      setTimeout(() => {
+        // Fase 3: glitch de saída → volta pro nome real
+        el.setAttribute('data-text', origData);
+        el.innerHTML = inner;
+        el.classList.remove('daemon-reveal');
+        void el.offsetWidth; // força reflow pra resetar animação
+        el.classList.add('daemon-reveal');
+
+        setTimeout(() => {
+          el.classList.remove('daemon-reveal');
+        }, 1400);
+      }, 1800);
+
+      // Próxima aparição: entre 12s e 28s
+      const next = 12000 + Math.random() * 16000;
+      setTimeout(triggerDaemon, next);
+    }
+
+    // Primeira aparição: entre 6s e 14s após carregar
+    const first = 6000 + Math.random() * 8000;
+    setTimeout(triggerDaemon, first);
+  })();
 
   /* ── Smooth nav highlight ────────────────────────── */
   const sections = document.querySelectorAll('section[id]');
